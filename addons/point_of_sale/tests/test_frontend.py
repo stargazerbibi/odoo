@@ -1628,6 +1628,22 @@ class TestUi(TestPointOfSaleHttpCommon):
             self.main_pos_config.with_user(self.pos_user).open_ui()
             self.start_tour(f"/pos/ui?config_id={self.main_pos_config.id}", 'SearchMoreCustomer', login="pos_user")
 
+@tagged('post_install', '-at_install')
+class TestUiOnlyDesktop(TestPointOfSaleHttpCommon):
+    def test_order_ids_sequential(self):
+        # Open a session and guarantee Point of Sale is installed
+        self.main_pos_config.with_user(self.pos_user).open_ui()
+        self.env['ir.module.module'].search([('name', '=', 'point_of_sale')], limit=1).state = 'installed'
+
+        self.start_tour("/pos/ui?config_id=%d" % self.main_pos_config.id, 'CancelOrderTour', login="pos_user")
+        
+        # Get list of orders
+        orders = self.env['pos.order'].search([])
+        self.assertEqual(len(orders), 2, "There should be at least 2 orders.")
+
+        # List of orders goes from newest to oldest order
+        first_order, third_order = int(orders[1].sequence_number), int(orders[0].sequence_number)
+        self.assertEqual(third_order, first_order + 1, "Order IDs should be sequential.")
 
 # This class just runs the same tests as above but with mobile emulation
 class MobileTestUi(TestUi):

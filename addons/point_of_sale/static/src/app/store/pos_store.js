@@ -411,6 +411,15 @@ export class PosStore extends Reactive {
             });
             if (!confirmed) {
                 return false;
+            } else {
+                const order_lines = order.get_orderlines();
+                const num_lines = order_lines.length;
+
+                for (let i = num_lines -1; i>=0; i--) {
+                    order.removeOrderline(order_lines[i]);
+                }
+
+                return false;
             }
         }
         const orderIsDeleted = await this.deleteOrders([order]);
